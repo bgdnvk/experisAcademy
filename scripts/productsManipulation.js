@@ -1,46 +1,13 @@
-const users_data_url = "data/Users.txt";
-const products_data_url = "data/Products.txt";
-const curr_user_data_url = "data/CurrentUserSession.txt";
-
-let popularProducts = {};
-let recommendedProducts = {};
-
-let organizedMovies = {};
-let organizedUsers = {};
-
-
-//read the data from the url(txt) and act on it
-function readData(url, callback){
-    fetch(url)
-   .then( res => res.text() )
-   .then( text => {
-    //    console.log(text);
-    //    console.log(typeof(text));
-       callback(text);
-   } )
-}
-
-
-
-readData(products_data_url, organizeProducts);
-
 //organize movies from products.txt
 function organizeProducts(text){
     let movieData = text.split("\n");
+
+
     for (let movie of movieData){
         //add the new object with organized movie data
         organizedMovies += movieMap(movie);
     }
 }
-
-// readData(products_data_url, organizeElements);
-// function organizeElements(text, organizedObject, mapCallback){
-//     let data = text.split("\n");
-//     for (let line of data){
-//         //add the new object with organized movie data
-//         organizedObject += mapCallback(line);
-//     }
-// }
 
 //return an object with 
 function movieMap(movie){
@@ -71,15 +38,11 @@ function movieMap(movie){
         price: price,
         keywords: keywords,
     };
+
     //return the element from the specific comma
     function getCommaWord(num){
         return movie.split("," )[num].trim();
     }
     console.log(movieObj);
     return movieObj;
-}
-
-//return the element from the specific comma
-function getCommaWord(num, text){
-    return text.split("," )[num].trim();
 }
