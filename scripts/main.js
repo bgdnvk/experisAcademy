@@ -1,6 +1,6 @@
 const users_data_url = "data/Users.txt";
 const products_data_url = "data/Products.txt";
-const curr_user_data_url = "data/CurrentUserSession.txt";
+const session_data_url = "data/CurrentUserSession.txt";
 
 const usersContainer = document.getElementById("users");
 const moviesContainer = document.getElementById("movies");
@@ -18,8 +18,12 @@ const organizedMovies = [],
     organizedUsers = [],
     organizedSessions = [];
 
-let sortedMoviesByRating = [];
-let topBoughtMovies = [];
+let topRatedMovies = [],
+    popularProducts = [],
+    topSellingMovies;
+//obj so I can store the keys instead of using [k,v] arr
+let boughtMovies = {};
+
 
 
 // //read the data from the url(txt) and act on it
@@ -87,27 +91,67 @@ function organizeElements(text, organizedObject, mapCallback){
 async function getMoviesData(){
     await requestData(products_data_url, organizeElements, organizedMovies, movieMap);
     console.log("now main is fired");
-    sortedMoviesByRating = sortMoviesByRating(organizedMovies);
+    topRatedMovies = getTopRatedMovies(organizedMovies);
     console.log("sorted movies: ");
-    console.log(sortedMoviesByRating);
+    console.log(topRatedMovies);
 }
-getMoviesData();
 
 async function getUsersData(){
     await requestData(users_data_url, organizeElements, organizedUsers, userMap);
-    console.log("now it loads");
-    countTopValue(organizedUsers);
+    // console.log("now it loads");
+    countBoughtMovies(organizedUsers);
+
 }
+
+async function getSessionData(){
+    await requestData(session_data_url, organizeElements, organizedSessions, sessionMap);
+    listPopularProducts();
+
+}
+//load all the data
+getMoviesData();
 getUsersData();
+getSessionData();
 
-function countTopValue(arr){
-    let obj = {};
-    for(e of arr){
-        console.log(e);
-    }
+
+function listPopularProducts(){
+    topSellingMovies = getTopBoughtMovies(2);
+    console.log(topSellingMovies);
+    console.log(topRatedMovies);
+
 }
 
-function sortMoviesByRating(movies){
+function countBoughtMovies(arrUsers){
+    for(user of arrUsers){
+        console.log(user);
+        console.log(user.purchased);
+        for(movie of user.purchased){
+            boughtMovies[movie] ? boughtMovies[movie]++: boughtMovies[movie] = 1;
+        }
+    }
+    console.log("boughtmovies is");
+    console.log(boughtMovies);
+
+}
+//this is a bit simple, I could have just sorted the boughtMovies obj as well
+//but this function gives you the specific sales and you can extend it
+//to only get the top or the bottom sales, etc
+function getTopBoughtMovies(sales){
+    const topBought = [];
+    const lessBought = [];
+    for(movieId in boughtMovies){
+        if(boughtMovies[movieId] >= sales){
+            // console.log("pushed ");
+            topBought.push(movieId);
+        } else{
+            lessBought.push(movieId);
+        }
+    }
+    const bestBoughtProducts = [...topBought, ...lessBought];
+    return bestBoughtProducts;
+}
+
+function getTopRatedMovies(movies){
     // console.log("movies is");
     // console.log(movies);
     // console.log("SORTING");
@@ -148,6 +192,8 @@ function userMap(user){
     //remove the comma from the last element
     viewed[viewed.length-1] = viewed[viewed.length-1].slice(0, -1);
     let purchased = user.split(" ")[3].split(";");
+    //delete the \r at the end and keep the string consistency of the data
+    purchased[purchased.length-1] = parseInt(purchased[purchased.length-1]).toString();
     
 
     let userObj = {
