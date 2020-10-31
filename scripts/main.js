@@ -90,10 +90,16 @@ function organizeElements(text, organizedObject, mapCallback){
 
 async function getMoviesData(){
     await requestData(products_data_url, organizeElements, organizedMovies, movieMap);
-    console.log("now main is fired");
+    // console.log("getMoviesData");
+    // console.log("organized movies is");
+    // console.log(organizedMovies);
+    // console.log("-------");
     topRatedMovies = getTopRatedMovies(organizedMovies);
     console.log("sorted movies: ");
     console.log(topRatedMovies);
+
+    console.log("organized movies: ");
+    console.log(organizedMovies);
 }
 
 async function getUsersData(){
@@ -116,15 +122,40 @@ getSessionData();
 
 function listPopularProducts(){
     topSellingMovies = getTopBoughtMovies(2);
-    console.log(topSellingMovies);
-    console.log(topRatedMovies);
+    let mostPupularProducts = [];
+    let lessPopularProducts = [];
 
+    console.log("inside popular products");
+    console.log(topSellingMovies[0]);
+    console.log(topSellingMovies[1]);
+    console.log(topRatedMovies);
+    console.log(organizedMovies);
+
+    for(movie of topSellingMovies[0][0]){
+        console.log("movie is "+movie);
+        mostPupularProducts.push(organizedMovies[movie-1])
+    }
+
+    for(movie of topSellingMovies[1][0]){
+        console.log("second movie is "+movie);
+        lessPopularProducts.push(organizedMovies[movie-1])
+    }
+    let sortedPopular = getTopRatedMovies(mostPupularProducts);
+    let sortedLessPopular = getTopRatedMovies(lessPopularProducts);
+
+    console.log(mostPupularProducts);
+    console.log(lessPopularProducts);
+    console.log(sortedLessPopular);
+
+    let popularProducts = [...sortedPopular, ...sortedLessPopular];
+    console.log(popularProducts);
+    return popularProducts;
 }
 
 function countBoughtMovies(arrUsers){
     for(user of arrUsers){
-        console.log(user);
-        console.log(user.purchased);
+        // console.log(user);
+        // console.log(user.purchased);
         for(movie of user.purchased){
             boughtMovies[movie] ? boughtMovies[movie]++: boughtMovies[movie] = 1;
         }
@@ -147,7 +178,8 @@ function getTopBoughtMovies(sales){
             lessBought.push(movieId);
         }
     }
-    const bestBoughtProducts = [...topBought, ...lessBought];
+    // const bestBoughtProducts = [...topBought, ...lessBought];
+    const bestBoughtProducts = [[topBought], [lessBought]];
     return bestBoughtProducts;
 }
 
@@ -155,10 +187,15 @@ function getTopRatedMovies(movies){
     // console.log("movies is");
     // console.log(movies);
     // console.log("SORTING");
-    let sortedMovies = movies;
+    // console.log(movies);
+    // let sortedMovies = movies;
+    let sortedMovies = [...movies];
+
     sortedMovies.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
     // console.log("sorted is");
     // console.log(sortedMovies);
+    // console.log("after sorted");
+    // console.log(movies);
     return sortedMovies;
 }
 
@@ -214,7 +251,7 @@ function userMap(user){
  */
 //return an object with 
 function movieMap(movie){
-    console.log(movie);
+    // console.log(movie);
     //parseInt or Regex could be used as well
     // let id = parseInt(movie.slice(0,2));
     let id = getCommaWord(0);
