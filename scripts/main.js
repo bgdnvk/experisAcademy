@@ -5,6 +5,8 @@ const session_data_url = "data/CurrentUserSession.txt";
 const usersContainer = document.getElementById("users");
 const moviesContainer = document.getElementById("movies");
 const sessionContainer = document.getElementById("sessions");
+const popularProductsContainer = document.getElementById("popularProducts");
+
 
 
 // let popularProducts = {};
@@ -111,8 +113,8 @@ async function getUsersData(){
 
 async function getSessionData(){
     await requestData(session_data_url, organizeElements, organizedSessions, sessionMap);
-    listPopularProducts();
-
+    let popularList = listPopularProducts();
+    addListToHtml(popularList, popularProductsContainer);
 }
 //load all the data
 getMoviesData();
@@ -134,11 +136,15 @@ function listPopularProducts(){
     for(movie of topSellingMovies[0][0]){
         console.log("movie is "+movie);
         mostPupularProducts.push(organizedMovies[movie-1])
+
+        
     }
 
     for(movie of topSellingMovies[1][0]){
         console.log("second movie is "+movie);
         lessPopularProducts.push(organizedMovies[movie-1])
+
+        
     }
     let sortedPopular = getTopRatedMovies(mostPupularProducts);
     let sortedLessPopular = getTopRatedMovies(lessPopularProducts);
@@ -148,9 +154,13 @@ function listPopularProducts(){
     console.log(sortedLessPopular);
 
     let popularProducts = [...sortedPopular, ...sortedLessPopular];
+
+ 
     console.log(popularProducts);
     return popularProducts;
 }
+
+
 
 function countBoughtMovies(arrUsers){
     for(user of arrUsers){
@@ -289,8 +299,13 @@ function movieMap(movie){
 
 /**
  * 
- * create HTML elements and add them to the proper container
+ * add HTML elements
  */
+function addListToHtml(list, container){
+    for (e of list){
+        addObjToHtml(e, container);
+    }
+}
 function addObjToHtml(obj, htmlContainer){
     let div = document.createElement("div");
     div.textContent = JSON.stringify(obj);;
@@ -299,6 +314,8 @@ function addObjToHtml(obj, htmlContainer){
     // console.log(htmlContainer);
     htmlContainer.appendChild(div);
 }
+
+
 
 //return the element from the specific comma
 function getCommaWord(num, text){
