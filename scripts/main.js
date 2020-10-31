@@ -2,10 +2,21 @@ const users_data_url = "data/Users.txt";
 const products_data_url = "data/Products.txt";
 const session_data_url = "data/CurrentUserSession.txt";
 
+const container = document.getElementById("container");
+
 const usersContainer = document.getElementById("users");
 const moviesContainer = document.getElementById("movies");
 const sessionContainer = document.getElementById("sessions");
 const popularProductsContainer = document.getElementById("popularProducts");
+
+// ///TODO
+// const loadingText = document.createElement("div");
+// loadingText.textContent = "LOADING DATA...";
+// console.log(loadingText);
+// console.log(container);
+// container.appendChild(loadingText);
+
+// //container.removeChild(loadingText);
 
 
 
@@ -16,9 +27,9 @@ const popularProductsContainer = document.getElementById("popularProducts");
 // const organizedMovies = [];
 // let organizedUsers = [];
 
-const organizedMovies = [],
-    organizedUsers = [],
-    organizedSessions = [];
+const rawMovieData = [],
+    rawUserData = [],
+    rawSessionData = [];
 
 let topRatedMovies = [],
     popularProducts = [],
@@ -91,36 +102,44 @@ function organizeElements(text, organizedObject, mapCallback){
 // readData(curr_user_data_url, organizeElements, organizedSessions, sessionMap);
 
 async function getMoviesData(){
-    await requestData(products_data_url, organizeElements, organizedMovies, movieMap);
+    await requestData(products_data_url, organizeElements, rawMovieData, movieMap);
     // console.log("getMoviesData");
     // console.log("organized movies is");
     // console.log(organizedMovies);
     // console.log("-------");
-    topRatedMovies = getTopRatedMovies(organizedMovies);
+    topRatedMovies = getTopRatedMovies(rawMovieData);
     console.log("sorted movies: ");
     console.log(topRatedMovies);
 
     console.log("organized movies: ");
-    console.log(organizedMovies);
+    console.log(rawMovieData);
+
+
+    addListToHtml(rawMovieData, moviesContainer);
+
 }
 
 async function getUsersData(){
-    await requestData(users_data_url, organizeElements, organizedUsers, userMap);
+    await requestData(users_data_url, organizeElements, rawUserData, userMap);
     // console.log("now it loads");
-    countBoughtMovies(organizedUsers);
+    addListToHtml(rawUserData, usersContainer);
+    countBoughtMovies(rawUserData);
+
 
 }
 
 async function getSessionData(){
-    await requestData(session_data_url, organizeElements, organizedSessions, sessionMap);
+    await requestData(session_data_url, organizeElements, rawSessionData, sessionMap);
+    addListToHtml(rawSessionData, sessionContainer);
     let popularList = listPopularProducts();
     addListToHtml(popularList, popularProductsContainer);
+
+
 }
 //load all the data
 getMoviesData();
 getUsersData();
 getSessionData();
-
 
 function listPopularProducts(){
     topSellingMovies = getTopBoughtMovies(2);
@@ -131,18 +150,18 @@ function listPopularProducts(){
     console.log(topSellingMovies[0]);
     console.log(topSellingMovies[1]);
     console.log(topRatedMovies);
-    console.log(organizedMovies);
+    console.log(rawMovieData);
 
     for(movie of topSellingMovies[0][0]){
         console.log("movie is "+movie);
-        mostPupularProducts.push(organizedMovies[movie-1])
+        mostPupularProducts.push(rawMovieData[movie-1])
 
         
     }
 
     for(movie of topSellingMovies[1][0]){
         console.log("second movie is "+movie);
-        lessPopularProducts.push(organizedMovies[movie-1])
+        lessPopularProducts.push(rawMovieData[movie-1])
 
         
     }
@@ -222,7 +241,7 @@ function sessionMap(session){
     }
     console.log(sessionObj);
     //add all the objs to html
-    addObjToHtml(sessionObj, sessionContainer);
+    // addObjToHtml(sessionObj, sessionContainer);
     return sessionObj
 }
 
@@ -251,7 +270,7 @@ function userMap(user){
     }
     console.log(userObj);
     //add all the objects to html
-    addObjToHtml(userObj, usersContainer);
+    // addObjToHtml(userObj, usersContainer);
     return userObj;
 }
 
@@ -293,7 +312,7 @@ function movieMap(movie){
         return movie.split("," )[num].trim();
     }
     //add all the objects to HTML
-    addObjToHtml(movieObj, moviesContainer);
+    // addObjToHtml(movieObj, moviesContainer);
     return movieObj;
 }
 
