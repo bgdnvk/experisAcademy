@@ -8,6 +8,7 @@ const usersContainer = document.getElementById("users");
 const moviesContainer = document.getElementById("movies");
 const sessionContainer = document.getElementById("sessions");
 const popularProductsContainer = document.getElementById("popularProducts");
+const recProductsContainer = document.getElementById("recProducts");
 
 // ///TODO
 // const loadingText = document.createElement("div");
@@ -133,15 +134,64 @@ async function getSessionData(){
     addListToHtml(rawSessionData, sessionContainer);
     let popularList = listPopularProducts();
     addListToHtml(popularList, popularProductsContainer);
+    // console.log("POPULAR");
+    // console.log(popularList);
 
     
     let userTags = getUserTags(rawSessionData);
-    // console.log(userTags);
+    console.log(userTags);
+    let recMovieList = getUserRecMovies(userTags, 5);
+
+    addListToHtml(recMovieList, recProductsContainer);
 }
 //load all the data
 getMoviesData();
 getUsersData();
 getSessionData();
+
+function getUserRecMovies(userTags, numRec){
+    let recUserList = [];
+    console.log(userTags);
+    for(e of userTags){
+        console.log(e);
+        let userName = e.userName;
+        console.log(userName);
+        let moviesRec = getRecMovies(e.rec, numRec);
+
+        let movieId = e.movieId;
+        let movieFocus = rawMovieData[movieId-1];
+        let movieName = movieFocus.name;
+
+
+        let movieRecObj = {
+            userName: userName,
+            movieName: movieName,
+            moviesRec: moviesRec,
+            // movieFocus: movieFocus,
+        }
+
+        recUserList.push(movieRecObj);
+    }
+
+    console.log(recUserList);
+    return recUserList;
+}
+
+function getRecMovies(recArr, numMovies){
+    let recMovies = [];
+    for(let i = 0; i < numMovies; i++){
+        let recId = recArr[i];
+        // console.log("recId is "+recId);
+        //movieArr starts with 0 and the ID is -1
+        let movie = rawMovieData[recId-1];
+        // console.log("movie is ");
+        // console.log(movie);
+        // console.log(movie.name);
+        recMovies.push(movie.name)
+    }
+    // console.log(rawMovieData);
+    return recMovies;
+}
 
 function getUserTags(session){
 
@@ -183,15 +233,18 @@ function getUserTagsObj(userSession){
     console.log("LOOKING FOR TAGS "+userTags);
 
     let rec = getRec(userTags, movieId);
+    //sort by Id
+    let recSorted = Object.keys(rec).sort(function(a,b){return rec[b]-rec[a]})
+
     
     let objUSerTags = {
         userid: userid,
         userName: name,
         userTags: userTags,
         movieId: movieId,
-        rec: rec,
+        rec: recSorted,
     }
-    console.log(rec);
+    console.log(recSorted);
     // console.log(userTags);
     return objUSerTags;
 
@@ -202,6 +255,7 @@ function getRec(userTags, movieId){
     let moviesWithTag = {};
     console.log(userTags);
 
+    //ugly O(n^3) but userTags and movie.keywords are pretty small
     for(tag of userTags){
         console.log(tag);
 
