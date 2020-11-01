@@ -291,14 +291,14 @@ function listPopularProducts(){
     console.log(rawMovieData);
 
     for(movie of topSellingMovies[0][0]){
-        console.log("movie is "+movie);
+        // console.log("movie is "+movie);
         mostPupularProducts.push(rawMovieData[movie-1])
 
         
     }
 
     for(movie of topSellingMovies[1][0]){
-        console.log("second movie is "+movie);
+        // console.log("second movie is "+movie);
         lessPopularProducts.push(rawMovieData[movie-1])
 
         
