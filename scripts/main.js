@@ -143,10 +143,12 @@ function getRecMovies(recArr, numMovies){
     let recMovies = [];
     for(let i = 0; i < numMovies; i++){
         let recId = recArr[i];
+        //array is organized 
         let movie = rawMovieData[recId-1];
         recMovies.push(movie.name)
     }
-    console.log(recMovies);
+    // console.log("recommended array of movies");
+    // console.log(recMovies);
     return recMovies;
 }
 
