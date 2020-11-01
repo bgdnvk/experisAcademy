@@ -1,33 +1,17 @@
+//Data URLs, can be local or APIs
 const users_data_url = "data/Users.txt";
 const products_data_url = "data/Products.txt";
 const session_data_url = "data/CurrentUserSession.txt";
 
+//HTML elements to fill the data
 const container = document.getElementById("container");
-
 const usersContainer = document.getElementById("users");
 const moviesContainer = document.getElementById("movies");
 const sessionContainer = document.getElementById("sessions");
 const popularProductsContainer = document.getElementById("popularProducts");
 const recProductsContainer = document.getElementById("recProducts");
 
-// ///TODO
-// const loadingText = document.createElement("div");
-// loadingText.textContent = "LOADING DATA...";
-// console.log(loadingText);
-// console.log(container);
-// container.appendChild(loadingText);
-
-// //container.removeChild(loadingText);
-
-
-
-// let popularProducts = {};
-// let recommendedProducts = {};
-
-// let organizedMovies = {};
-// const organizedMovies = [];
-// let organizedUsers = [];
-
+//storage objects and arrays
 const rawMovieData = [],
     rawUserData = [],
     rawSessionData = [];
@@ -39,52 +23,32 @@ let topRatedMovies = [],
 let boughtMovies = {};
 
 
-
-// //read the data from the url(txt) and act on it
-// function readData(url, callback){
-//     fetch(url)
-//    .then( res => res.text() )
-//    .then( text => {
-//     //    console.log(text);
-//     //    console.log(typeof(text));
-//        callback(text);
-//    } )
-// }
-
-// readData(products_data_url, organizeProducts);
-
-// // organize movies from products.txt
-// function organizeProducts(text){
-//     let movieData = text.split("\n");
-//     for (let movie of movieData){
-//         //add the new object with organized movie data
-//         organizedMovies.push(movieMap(movie));
-//     }
-// }
+// -------------------- GET DATA --------------------//
 
 //read the data from the url(txt)
 //call the function to organize elements
 //pass inside the object we want to fill
 //pass the map function for the object
-function readData(url, organizeCallback, organizedObject, mapCallback, option){
-    fetch(url)
-   .then( res => res.text() )
-   .then( text => {
-    //    console.log(text);
-    //    console.log(typeof(text));
-       organizeCallback(text, organizedObject, mapCallback);
-    //    console.log(organizedMovies);
-   } )
-}
-
-const requestData = async (url, organizeCallback, organizedObject, mapCallback, option) => {
+// function readData(url, organizeCallback, organizedObject, mapCallback){
+//     fetch(url)
+//    .then( res => res.text() )
+//    .then( text => {
+//        organizeCallback(text, organizedObject, mapCallback);
+//    } )
+// }
+//the function above is the same but using promises, changed for readability
+/**
+ * 
+ * @param {dataURL} url 
+ * @param {func} organizeCallback split all the data line by line and put it inside the obj
+ * @param {obj} organizedObject the object we want to fill with our data
+ * @param {func} mapCallback parse every line of raw data and map it inside the object
+ */
+const requestData = async (url, organizeCallback, organizedObject, mapCallback) => {
    const res = await fetch(url);
    const text = await res.text();
    return organizeCallback(text, organizedObject, mapCallback);
 }
-
-
-
 
 //helper function to organize all elements from a txt
 function organizeElements(text, organizedObject, mapCallback){
@@ -97,146 +61,119 @@ function organizeElements(text, organizedObject, mapCallback){
     }
 }
 
-//read and map movie data
-// readData(products_data_url, organizeElements, organizedMovies, movieMap);
-// readData(users_data_url, organizeElements, organizedUsers, userMap);
-// readData(curr_user_data_url, organizeElements, organizedSessions, sessionMap);
+// -------------------- GET DATA --------------------//
+
+// -------------------- LOAD DATA --------------------//
 
 async function getMoviesData(){
     await requestData(products_data_url, organizeElements, rawMovieData, movieMap);
-    // console.log("getMoviesData");
-    // console.log("organized movies is");
-    // console.log(organizedMovies);
-    // console.log("-------");
     topRatedMovies = getTopRatedMovies(rawMovieData);
-    console.log("sorted movies: ");
-    console.log(topRatedMovies);
-
-    console.log("organized movies: ");
-    console.log(rawMovieData);
-
-
     addListToHtml(rawMovieData, moviesContainer);
 
+    console.log("sorted movies:");
+    console.log(topRatedMovies);
+    console.log("raw data movies:");
+    console.log(rawMovieData);
 }
 
 async function getUsersData(){
     await requestData(users_data_url, organizeElements, rawUserData, userMap);
-    // console.log("now it loads");
     addListToHtml(rawUserData, usersContainer);
-    countBoughtMovies(rawUserData);
+    getBoughtMovies(rawUserData);
 
-
+    console.log("raw user data:");
+    console.log(rawUserData);
 }
 
 async function getSessionData(){
     await requestData(session_data_url, organizeElements, rawSessionData, sessionMap);
     addListToHtml(rawSessionData, sessionContainer);
-    let popularList = listPopularProducts();
+    let popularList = getListPopularProducts();
     addListToHtml(popularList, popularProductsContainer);
-    // console.log("POPULAR");
-    // console.log(popularList);
-
-    
     let userTags = getUserTags(rawSessionData);
-    console.log(userTags);
     let recMovieList = getUserRecMovies(userTags, 5);
-
     addListToHtml(recMovieList, recProductsContainer);
+    //remove the "LOADING DATA" text once everything is loaded and ready
+    container.removeChild(document.getElementById("loadingText"));
+
+    console.log("popular products");
+    console.log(popularList);
+    console.log("user session with keywords and their recommendations (rec)");
+    console.log(userTags);
+    console.log("movie recommendations based on user tags (their current movie selection)");
+    console.log(recMovieList);
+
 }
 //load all the data
 getMoviesData();
 getUsersData();
 getSessionData();
 
+// -------------------- LOAD DATA --------------------//
+
+// -------------------- ORGANIZE DATA --------------------//
 function getUserRecMovies(userTags, numRec){
     let recUserList = [];
-    console.log(userTags);
+    // console.log(userTags);
     for(e of userTags){
-        console.log(e);
         let userName = e.userName;
-        console.log(userName);
         let moviesRec = getRecMovies(e.rec, numRec);
-
         let movieId = e.movieId;
         let movieFocus = rawMovieData[movieId-1];
         let movieName = movieFocus.name;
-
-
         let movieRecObj = {
             userName: userName,
             movieName: movieName,
             moviesRec: moviesRec,
-            // movieFocus: movieFocus,
         }
 
         recUserList.push(movieRecObj);
     }
 
-    console.log(recUserList);
+    // console.log(recUserList);
     return recUserList;
 }
-
+/**
+ * 
+ * @param {arr} recArr array from userTags of recommended movies
+ * @param {number} numMovies number of movies to recommend the user
+ */
+//return an array with the names from recMovies
 function getRecMovies(recArr, numMovies){
     let recMovies = [];
     for(let i = 0; i < numMovies; i++){
         let recId = recArr[i];
-        // console.log("recId is "+recId);
-        //movieArr starts with 0 and the ID is -1
         let movie = rawMovieData[recId-1];
-        // console.log("movie is ");
-        // console.log(movie);
-        // console.log(movie.name);
         recMovies.push(movie.name)
     }
-    // console.log(rawMovieData);
+    console.log(recMovies);
     return recMovies;
 }
 
 function getUserTags(session){
-
-    // console.log("session is ");
-    console.log(session);
     let userTags = [];
 
     for(key in session){
-        // console.log(key);
-        // console.log("session key is ");
-        // console.log(session[key]);
         let userTagsObj = getUserTagsObj(session[key]);
         userTags.push(userTagsObj);
     }
-
-    console.log(userTags);
     return userTags;
 }
 
 function getUserTagsObj(userSession){
-    console.log("inside session");
-    console.log(userSession);
+
     let userid = userSession.userid;
-    // console.log("userid is  "+userid);
-    
-    // console.log(
-    //     "type of userid is "+typeof(userid)
-    // );
 
     let name = rawUserData[userid-1].name;
-    // console.log("name is "+name);
     let movieId = userSession.productid;
-
-    // console.log("movieId is "+movieId);
 
     //need to rest one because rawmovieData array starts at 0
     let userTags = rawMovieData[movieId-1].keywords;
-    // console.log(userTags);
-    console.log("LOOKING FOR TAGS "+userTags);
-
+    // console.log("TAGS FROM CURR SESSION "+userTags);
     let rec = getRec(userTags, movieId);
     //sort by Id
     let recSorted = Object.keys(rec).sort(function(a,b){return rec[b]-rec[a]})
 
-    
     let objUSerTags = {
         userid: userid,
         userName: name,
@@ -244,23 +181,21 @@ function getUserTagsObj(userSession){
         movieId: movieId,
         rec: recSorted,
     }
-    console.log(recSorted);
-    // console.log(userTags);
+    // console.log("recommended movies sorted");
+    // console.log(recSorted);
     return objUSerTags;
-
 }
-//TODOOOOOOO---------------------------------------------------------------
+/**
+ * 
+ * @param {arr} userTags keywords/tags from the movie the user is looking at
+ * @param {string} movieId the id of the movie the user is looking at
+ */
+//return an object with all the ids of movies that fit the current movie (movieId)
 function getRec(userTags, movieId){
-    console.log("inside getRec");
     let moviesWithTag = {};
-    console.log(userTags);
-
     //ugly O(n^3) but userTags and movie.keywords are pretty small
     for(tag of userTags){
-        console.log(tag);
-
         for(movie of topRatedMovies){
-            
             for(keyword of movie.keywords){
                 //check for the same tag from userSession
                 //check for the same keyword from movie tags
@@ -272,97 +207,73 @@ function getRec(userTags, movieId){
             }
         }
     }
-
-
-    console.log("#########################################END of userRec");
-    console.log(moviesWithTag);
+    // console.log("ids from the movies that fit the keywords, incremented if it's more than once");
+    // console.log(moviesWithTag);
     return moviesWithTag;
 }
-
-function listPopularProducts(){
+//return array with the most popular products
+//topSellingMovies is determned by how many sales you want to count from
+//in our case the limit of sales is only 2
+function getListPopularProducts(){
     topSellingMovies = getTopBoughtMovies(2);
     let mostPupularProducts = [];
     let lessPopularProducts = [];
 
-    console.log("inside popular products");
-    console.log(topSellingMovies[0]);
-    console.log(topSellingMovies[1]);
-    console.log(topRatedMovies);
-    console.log(rawMovieData);
-
     for(movie of topSellingMovies[0][0]){
-        // console.log("movie is "+movie);
         mostPupularProducts.push(rawMovieData[movie-1])
-
-        
     }
 
     for(movie of topSellingMovies[1][0]){
-        // console.log("second movie is "+movie);
         lessPopularProducts.push(rawMovieData[movie-1])
-
-        
     }
+    //order by rating
     let sortedPopular = getTopRatedMovies(mostPupularProducts);
     let sortedLessPopular = getTopRatedMovies(lessPopularProducts);
-
-    console.log(mostPupularProducts);
-    console.log(lessPopularProducts);
-    console.log(sortedLessPopular);
-
+    // console.log(mostPupularProducts);
+    // console.log(lessPopularProducts);
+    // console.log(sortedLessPopular);
     let popularProducts = [...sortedPopular, ...sortedLessPopular];
-
- 
-    console.log(popularProducts);
     return popularProducts;
 }
 
-
-
-function countBoughtMovies(arrUsers){
+//fill the boughtMovies obj with the bought movies from rawUserData
+function getBoughtMovies(arrUsers){
     for(user of arrUsers){
-        // console.log(user);
-        // console.log(user.purchased);
         for(movie of user.purchased){
             boughtMovies[movie] ? boughtMovies[movie]++: boughtMovies[movie] = 1;
         }
     }
-    console.log("boughtmovies is");
-    console.log(boughtMovies);
-
+    // console.log(boughtMovies);
 }
+
 //this is a bit simple, I could have just sorted the boughtMovies obj as well
 //but this function gives you the specific sales and you can extend it
 //to only get the top or the bottom sales, etc
+
+//return the top movies with most sales by order
+/**
+ * 
+ * @param {num} sales determine what's the limit on sales you want to start counting from
+ */
 function getTopBoughtMovies(sales){
     const topBought = [];
     const lessBought = [];
     for(movieId in boughtMovies){
         if(boughtMovies[movieId] >= sales){
-            // console.log("pushed ");
             topBought.push(movieId);
         } else{
             lessBought.push(movieId);
         }
     }
-    // const bestBoughtProducts = [...topBought, ...lessBought];
     const bestBoughtProducts = [[topBought], [lessBought]];
     return bestBoughtProducts;
 }
-
+//return movies sorted by user rating
 function getTopRatedMovies(movies){
-    // console.log("movies is");
-    // console.log(movies);
-    // console.log("SORTING");
-    // console.log(movies);
-    // let sortedMovies = movies;
     let sortedMovies = [...movies];
-
     sortedMovies.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
-    // console.log("sorted is");
+    // console.log("sorted movies");
     // console.log(sortedMovies);
-    // console.log("after sorted");
-    // console.log(movies);
     return sortedMovies;
 }
 
@@ -377,7 +288,6 @@ function sessionMap(session){
         userid: userid,
         productid: productid
     }
-    console.log(sessionObj);
     //add all the objs to html
     // addObjToHtml(sessionObj, sessionContainer);
     return sessionObj
@@ -387,9 +297,9 @@ function sessionMap(session){
  * 
  * Organize Users
  */
+//return an obj with all the user data parsed correctly
 function userMap(user){
-    console.log(user);
-
+    // console.log(user);
     let id = getCommaWord(0, user);
     let name = getCommaWord(1, user);
     let viewed = user.split(" ")[2].split(";");
@@ -398,7 +308,6 @@ function userMap(user){
     let purchased = user.split(" ")[3].split(";");
     //delete the \r at the end and keep the string consistency of the data
     purchased[purchased.length-1] = parseInt(purchased[purchased.length-1]).toString();
-    
 
     let userObj = {
         id: id,
@@ -406,9 +315,7 @@ function userMap(user){
         viewed: viewed,
         purchased: purchased
     }
-    console.log(userObj);
-    //add all the objects to html
-    // addObjToHtml(userObj, usersContainer);
+    // console.log(userObj);
     return userObj;
 }
 
@@ -416,9 +323,8 @@ function userMap(user){
  * 
  * Organize MOVIES
  */
-//return an object with 
+//return an object with all the movie data parsed correctly
 function movieMap(movie){
-    // console.log(movie);
     //parseInt or Regex could be used as well
     // let id = parseInt(movie.slice(0,2));
     let id = getCommaWord(0);
@@ -454,6 +360,9 @@ function movieMap(movie){
     return movieObj;
 }
 
+// -------------------- ORGANIZE DATA --------------------//
+
+
 /**
  * 
  * add HTML elements
@@ -466,14 +375,10 @@ function addListToHtml(list, container){
 function addObjToHtml(obj, htmlContainer){
     let div = document.createElement("div");
     div.textContent = JSON.stringify(obj);;
-    // console.log("INSIDE DIV");
-    // console.log(div);
-    // console.log(htmlContainer);
     htmlContainer.appendChild(div);
 }
 
-
-
+//helper text functions
 //return the element from the specific comma
 function getCommaWord(num, text){
     return text.split("," )[num].trim();
