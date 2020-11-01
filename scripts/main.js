@@ -151,10 +151,9 @@ function getRecMovies(recArr, numMovies){
     // console.log(recMovies);
     return recMovies;
 }
-
+//return array of tags/keywords from the user session
 function getUserTags(session){
     let userTags = [];
-
     for(key in session){
         let userTagsObj = getUserTagsObj(session[key]);
         userTags.push(userTagsObj);
