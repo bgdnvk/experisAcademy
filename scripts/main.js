@@ -163,12 +163,9 @@ function getUserTags(session){
 }
 
 function getUserTagsObj(userSession){
-
     let userid = userSession.userid;
-
     let name = rawUserData[userid-1].name;
     let movieId = userSession.productid;
-
     //need to rest one because rawmovieData array starts at 0
     let userTags = rawMovieData[movieId-1].keywords;
     // console.log("TAGS FROM CURR SESSION "+userTags);
@@ -283,6 +280,7 @@ function getTopRatedMovies(movies){
  * 
  * Organize Session
  */
+//return obj with session information per user
 function sessionMap(session){
     let userid = getCommaWord(0, session);
     let productid = getCommaWord(1, session);
@@ -290,8 +288,6 @@ function sessionMap(session){
         userid: userid,
         productid: productid
     }
-    //add all the objs to html
-    // addObjToHtml(sessionObj, sessionContainer);
     return sessionObj
 }
 
@@ -310,7 +306,6 @@ function userMap(user){
     let purchased = user.split(" ")[3].split(";");
     //delete the \r at the end and keep the string consistency of the data
     purchased[purchased.length-1] = parseInt(purchased[purchased.length-1]).toString();
-
     let userObj = {
         id: id,
         name: name,
@@ -327,14 +322,12 @@ function userMap(user){
  */
 //return an object with all the movie data parsed correctly
 function movieMap(movie){
-    //parseInt or Regex could be used as well
-    // let id = parseInt(movie.slice(0,2));
-    let id = getCommaWord(0);
-    let name = getCommaWord(1);
-    let year = getCommaWord(2);
+    let id = getCommaWord(0, movie);
+    let name = getCommaWord(1, movie);
+    let year = getCommaWord(2, movie);
     let yearLastIndex = movie.search(year)+year.length;
-    let rating = getCommaWord(8);
-    let price = getCommaWord(9);
+    let rating = getCommaWord(8, movie);
+    let price = getCommaWord(9, movie);
     let keywordsLastIndex = rating.length+price.length+2;
     //get the keywords by removing the information around
     //afterwards put them in an array if the word is more than one letter
@@ -353,17 +346,13 @@ function movieMap(movie){
         price: price,
         keywords: keywords,
     };
-    //return the element from the specific comma
-    function getCommaWord(num){
-        return movie.split("," )[num].trim();
-    }
-    //add all the objects to HTML
-    // addObjToHtml(movieObj, moviesContainer);
+
     return movieObj;
 }
 
 // -------------------- ORGANIZE DATA --------------------//
 
+// -------------------- HTML FUNCTIONS --------------------//
 
 /**
  * 
@@ -380,7 +369,10 @@ function addObjToHtml(obj, htmlContainer){
     htmlContainer.appendChild(div);
 }
 
-//helper text functions
+// -------------------- HTML FUNCTIONS --------------------//
+
+// -------------------- TEXT HELP --------------------//
+
 //return the element from the specific comma
 function getCommaWord(num, text){
     return text.split("," )[num].trim();
