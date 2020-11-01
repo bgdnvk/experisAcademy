@@ -134,12 +134,96 @@ async function getSessionData(){
     let popularList = listPopularProducts();
     addListToHtml(popularList, popularProductsContainer);
 
-
+    
+    let userTags = getUserTags(rawSessionData);
+    // console.log(userTags);
 }
 //load all the data
 getMoviesData();
 getUsersData();
 getSessionData();
+
+function getUserTags(session){
+
+    // console.log("session is ");
+    console.log(session);
+    let userTags = [];
+
+    for(key in session){
+        // console.log(key);
+        // console.log("session key is ");
+        // console.log(session[key]);
+        let userTagsObj = getUserTagsObj(session[key]);
+        userTags.push(userTagsObj);
+    }
+
+    console.log(userTags);
+    return userTags;
+}
+
+function getUserTagsObj(userSession){
+    console.log("inside session");
+    console.log(userSession);
+    let userid = userSession.userid;
+    // console.log("userid is  "+userid);
+    
+    // console.log(
+    //     "type of userid is "+typeof(userid)
+    // );
+
+    let name = rawUserData[userid-1].name;
+    // console.log("name is "+name);
+    let movieId = userSession.productid;
+
+    // console.log("movieId is "+movieId);
+
+    //need to rest one because rawmovieData array starts at 0
+    let userTags = rawMovieData[movieId-1].keywords;
+    // console.log(userTags);
+    console.log("LOOKING FOR TAGS "+userTags);
+
+    let rec = getRec(userTags, movieId);
+    
+    let objUSerTags = {
+        userid: userid,
+        userName: name,
+        userTags: userTags,
+        movieId: movieId,
+        rec: rec,
+    }
+    console.log(rec);
+    // console.log(userTags);
+    return objUSerTags;
+
+}
+//TODOOOOOOO---------------------------------------------------------------
+function getRec(userTags, movieId){
+    console.log("inside getRec");
+    let moviesWithTag = {};
+    console.log(userTags);
+
+    for(tag of userTags){
+        console.log(tag);
+
+        for(movie of topRatedMovies){
+            
+            for(keyword of movie.keywords){
+                //check for the same tag from userSession
+                //check for the same keyword from movie tags
+                //make sure it's not the same movie the user is checking right now
+                if(tag === keyword
+                    && movieId!== movie.id){
+                        moviesWithTag[movie.id] ? moviesWithTag[movie.id]++ : moviesWithTag[movie.id] = 1;
+                }
+            }
+        }
+    }
+
+
+    console.log("#########################################END of userRec");
+    console.log(moviesWithTag);
+    return moviesWithTag;
+}
 
 function listPopularProducts(){
     topSellingMovies = getTopBoughtMovies(2);
